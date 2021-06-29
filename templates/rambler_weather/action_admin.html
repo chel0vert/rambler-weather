@@ -1,0 +1,86 @@
+
+<!-- table zwave_devices search -->
+<div>
+ <!--[ <a href="#" onClick="$('#api_settings').toggle();return false;"><#LANG_SETUP#></a> ]-->
+</div>
+<div style="display:none" id='api_settings'>
+&nbsp;
+<form action="?" method="post" enctype="multipart/form-data" name="frmEdit" class="form-horizontal">
+<fieldset>
+<div class="form-group">
+ <label class="control-label"[#if ERR_API_URL#] style="color:red;font-weight:bold"[#endif#]>
+ API URL NOW:
+ (*)
+ </label>
+ <div class="controls"><input type="text" name="api_url" value="[#API_URL#]" class="input"></div>
+</div>
+    <div class="form-group">
+        <label class="control-label"[#if ERR_API_URL_TODAY#] style="color:red;font-weight:bold"[#endif#]>
+            API URL TODAY:
+            (*)
+        </label>
+        <div class="controls"><input type="text" name="api_url_today" value="[#API_URL_TODAY#]" class="input"></div>
+    </div>
+<div class="form-actions">
+<button type="submit" name="subm" value="Submit" class="btn btn-primary"><#LANG_UPDATE#></button>
+<input type="hidden" name="view_mode" value="update_settings">
+<input type="hidden" name="mode" value="update">
+</div>
+</fieldset>
+</form>
+</div>
+ <!-- action usual -->
+ [#if DATA_SOURCE="rambler_weather_cities" || DATA_SOURCE=""#]
+ <!-- table rambler_weather_cities search -->
+ [#if VIEW_MODE="search_rambler_weather_cities" || VIEW_MODE=""#]
+  [#inc rambler_weather_cities_search_admin.html#]
+ [#endif VIEW_MODE#]
+ <!-- / table rambler_weather_cities search -->
+ <!-- table rambler_weather_cities edit -->
+ [#if VIEW_MODE="edit_rambler_weather_cities"#]
+   [#if ID!=""#]
+   [#if TITLE!=""#]<h4>[#TITLE#]</h4>[#endif TITLE#]
+<ul class="nav nav-tabs">
+  <li[#if TAB=""#] class="active"[#endif#]>
+   <a href="?data_source=<#DATA_SOURCE#>&view_mode=<#VIEW_MODE#>&id=<#ID#>&tab="><#LANG_GENERAL#></a>
+  </li>
+  <li[#if TAB="data"#] class="active"[#endif#]>
+   <a href="?data_source=<#DATA_SOURCE#>&view_mode=<#VIEW_MODE#>&id=<#ID#>&tab=data">&#060#LANG_DATA#&#062</a>
+  </li>
+</ul>
+&nbsp;<br/>
+   [#endif ID#]
+   [#if TAB=""#]
+    [#inc rambler_weather_cities_edit_default.html#]
+   [#endif TAB#]
+   [#if TAB="data"#]
+    [#inc rambler_weather_cities_edit_data.html#]
+   [#endif TAB#]
+ [#endif VIEW_MODE#]
+ <!-- / table rambler_weather_cities edit -->
+ <!-- table rambler_weather_cities view --> 
+ [#if VIEW_MODE="view_rambler_weather_cities"#]
+   [#if TAB=""#]
+    [#inc rambler_weather_cities_view_default.html#]
+   [#endif TAB#]
+ [#endif VIEW_MODE#]
+ <!-- / table rambler_weather_cities view -->
+ [#endif DATA_SOURCE#]
+ <!-- action usual -->
+ [#if DATA_SOURCE="rambler_weather"#]
+ <!-- table rambler_weather search -->
+ [#if VIEW_MODE="search_rambler_weather" || VIEW_MODE=""#]
+  [#inc rambler_weather_search_admin.html#]
+ [#endif VIEW_MODE#]
+ <!-- / table rambler_weather search -->
+ <!-- table rambler_weather edit -->
+ [#if VIEW_MODE="edit_rambler_weather"#]
+   [#inc rambler_weather_edit.html#]
+ [#endif VIEW_MODE#]
+ <!-- / table rambler_weather edit -->
+ <!-- table rambler_weather view --> 
+ [#if VIEW_MODE="view_rambler_weather"#]
+   [#inc rambler_weather_view.html#]
+ [#endif VIEW_MODE#]
+ <!-- / table rambler_weather view -->
+ [#endif DATA_SOURCE#]
