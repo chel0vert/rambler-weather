@@ -22,8 +22,14 @@ class rambler_weather extends module
         $this->name = "rambler_weather";
         $this->title = "Rambler Weather";
         $this->module_category = "<#LANG_SECTION_OBJECTS#>";
-        $this->api_url_now = 'https://weather.rambler.ru/api/v3/now/?';
-        $this->api_url_today = 'https://weather.rambler.ru/api/v3/today/?';
+        $this->api_urls = array(
+            'now' => 'https://weather.rambler.ru/api/v3/now/?',
+            'today' => 'https://weather.rambler.ru/api/v3/today/?',
+            'tomorrow' => 'https://weather.rambler.ru/api/v3/tomorrow/?',
+            #'month' => 'https://weather.rambler.ru/api/v3/month/?',
+            #'14days' => 'https://weather.rambler.ru/api/v3/ndays/?n=14',
+            '3days' => 'https://weather.rambler.ru/api/v3/ndays/?n=3',
+        );
         $this->checkInstalled();
     }
 
@@ -299,8 +305,7 @@ class rambler_weather extends module
     function processCycle()
     {
         #$config = $this->getConfig();
-        $url = $this->api_url_now;
-        $url_today = $this->api_url_today;
+        $urls = $this->api_urls;
         $cities = SQLSelect("SELECT * FROM rambler_weather_cities");
         var_dump($cities);
         $total = count($cities);
@@ -309,13 +314,12 @@ class rambler_weather extends module
                 $values = $cities[$i];
                 $city_name = $values['CITY_NAME'];
                 $city_id = $values['ID'];
-                $url = "$url&url_path=$city_name";
-                $url_today = "$url_today&url_path=$city_name";
-                echo("$url $url_today\n");
-                $json = $this->getWeatherJson($url);
-                $this->json2mysql($json, '', $city_id);
-                $json = $this->getWeatherJson($url_today);
-                $this->json2mysql($json, '', $city_id);
+                foreach ($urls as $prefix => $url) {
+                    $url = "$url&url_path=$city_name";
+                    echo("$url\n");
+                    $json = $this->getWeatherJson($url);
+                    $this->json2mysql($json, $prefix.'_', $city_id);
+                }
                 $values['UPDATED'] = date('Y-m-d H:i:s');
                 SQLUpdate('rambler_weather_cities', $values);
             }
@@ -326,12 +330,22 @@ class rambler_weather extends module
     {
         if ($this->is_assoc($json)) {
             foreach ($json as $key => $value) {
+                if ($key == 'cities_nearby') {
+                    continue;
+                }
+
                 if (is_int($value) || is_string($value)) {
                     $property = "$prefix$key";
                     echo "$property => $value\n";
                     $this->set_weather_property($city_id, $property, $value);
                 } elseif ($this->is_assoc($value)) {
                     $this->json2mysql($value, "$prefix$key" . "_", $city_id);
+                } elseif (is_array($value)) {
+                    $counter = 1;
+                    foreach ($value as $item) {
+                        $this->json2mysql($item, "$prefix$key"."_"."$counter" . "_", $city_id);
+                        $counter = $counter + 1;
+                    }
                 }
             }
         }
