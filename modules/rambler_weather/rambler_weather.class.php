@@ -308,27 +308,30 @@ class rambler_weather extends module
             for ($i = 0; $i < $total; $i++) {
                 $values = $cities[$i];
                 $city_name = $values['CITY_NAME'];
+                $city_id = $values['ID'];
                 $url = "$url&url_path=$city_name";
                 $url_today = "$url_today&url_path=$city_name";
+                echo("$url $url_today\n");
+                $json = $this->getWeatherJson($url);
+                $this->json2mysql($json, '', $city_id);
+                $json = $this->getWeatherJson($url_today);
+                $this->json2mysql($json, '', $city_id);
+                $values['UPDATED'] = date('Y-m-d H:i:s');
+                SQLUpdate('rambler_weather_cities', $values);
             }
         }
-        echo("$url $url_today\n");
-        $json = $this->getWeatherJson($url);
-        $this->json2mysql($json);
-        $json = $this->getWeatherJson($url_today);
-        $this->json2mysql($json);
     }
 
-    function json2mysql($json, $prefix = '')
+    function json2mysql($json, $prefix = '', $city_id)
     {
         if ($this->is_assoc($json)) {
             foreach ($json as $key => $value) {
                 if (is_int($value) || is_string($value)) {
                     $property = "$prefix$key";
                     echo "$property => $value\n";
-                    $this->set_weather_property(1, $property, $value);
+                    $this->set_weather_property($city_id, $property, $value);
                 } elseif ($this->is_assoc($value)) {
-                    $this->json2mysql($value, "$prefix$key" . "_");
+                    $this->json2mysql($value, "$prefix$key" . "_", $city_id);
                 }
             }
         }
