@@ -22,6 +22,8 @@ class rambler_weather extends module
         $this->name = "rambler_weather";
         $this->title = "Rambler Weather";
         $this->module_category = "<#LANG_SECTION_OBJECTS#>";
+        $this->api_url_now = 'https://weather.rambler.ru/api/v3/now/?';
+        $this->api_url_today = 'https://weather.rambler.ru/api/v3/today/?';
         $this->checkInstalled();
     }
 
@@ -132,19 +134,23 @@ class rambler_weather extends module
     {
         $this->getConfig();
         $out['API_URL'] = $this->config['API_URL'];
+        global $api_url;
+        global $api_url_today;
         if (!$out['API_URL']) {
-            $out['API_URL'] = 'https://weather.rambler.ru/api/v3/now/?url_path=v-sankt-peterburge';
+            $now_url = 'https://weather.rambler.ru/api/v3/now/?';
+            $out['API_URL'] = $now_url;
+            $api_url = $now_url;
         }
         if (!$out['API_URL_TODAY']) {
-            $out['API_URL_TODAY'] = 'https://weather.rambler.ru/api/v3/today/?url_path=v-sankt-peterburge';
+            $today_url = 'https://weather.rambler.ru/api/v3/today/?';
+            $out['API_URL_TODAY'] = $today_url;
+            $api_url_today = $today_url;
         }
         $out['API_KEY'] = $this->config['API_KEY'];
         $out['API_USERNAME'] = $this->config['API_USERNAME'];
         $out['API_PASSWORD'] = $this->config['API_PASSWORD'];
         if ($this->view_mode == 'update_settings') {
-            global $api_url;
             $this->config['API_URL'] = $api_url;
-            global $api_url_today;
             $this->config['API_URL_TODAY'] = $api_url_today;
             global $api_key;
             $this->config['API_KEY'] = $api_key;
@@ -292,14 +298,24 @@ class rambler_weather extends module
 
     function processCycle()
     {
-        $config = $this->getConfig();
-        $url = $config['API_URL'];
-        echo "$url\n";
+        #$config = $this->getConfig();
+        $url = $this->api_url_now;
+        $url_today = $this->api_url_today;
+        $cities = SQLSelect("SELECT * FROM rambler_weather_cities");
+        var_dump($cities);
+        $total = count($cities);
+        if ($total) {
+            for ($i = 0; $i < $total; $i++) {
+                $values = $cities[$i];
+                $city_name = $values['CITY_NAME'];
+                $url = "$url&url_path=$city_name";
+                $url_today = "$url_today&url_path=$city_name";
+            }
+        }
+        echo("$url $url_today\n");
         $json = $this->getWeatherJson($url);
         $this->json2mysql($json);
-        $url = $config['API_URL_TODAY'];
-        echo "$url\n";
-        $json = $this->getWeatherJson($url);
+        $json = $this->getWeatherJson($url_today);
         $this->json2mysql($json);
     }
 
